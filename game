@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+
+########################################
+# 
+# Basic terminal minesweeper game
+# written by Ben Mastay
+# 
+########################################
+import models.board
+
+def main():
+    board = models.board.Board(10,10,15)
+    print(board)
+    board.reveal()
+    print(board)
+
+
+if __name__ == "__main__":
+    main()
+
+
