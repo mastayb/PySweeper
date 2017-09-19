@@ -2,20 +2,36 @@
 
 ########################################
 # 
-# Basic terminal minesweeper game
+# Basic terminal minesweeper game 
 # written by Ben Mastay
 # 
 ########################################
 import models.board
+import curses
 
-def main():
+def main(stdscr):
+
+    stdscr.clear()
+
     board = models.board.Board(10,10,15)
-    print(board)
+
+    for y,r in enumerate(board.board):
+        for x,tile in enumerate(r):
+            stdscr.addstr(y*2,x*2, str(tile))
+
+
     board.reveal()
-    print(board)
+    stdscr.getkey()
+    
+    for y,r in enumerate(board.board):
+        for x,tile in enumerate(r):
+            stdscr.addstr(y*2,x*2, str(tile))
+
+    stdscr.refresh()
+    stdscr.getkey()
 
 
 if __name__ == "__main__":
-    main()
+    curses.wrapper(main)
 
 
