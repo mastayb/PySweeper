@@ -7,27 +7,38 @@
 # 
 ########################################
 import models.board
+import models.cursor
 import curses
+
+def draw(stdscr, board, cursor):
+    stdscr.clear()
+
+    for y,r in enumerate(board.board):
+        for x,tile in enumerate(r):
+            stdscr.addstr(y*2,1+x*2, str(tile))
+    y,x = cursor.get_pos()
+    stdscr.addstr(y*2, x*2, "<")
+    stdscr.addstr(y*2, x*2+2, ">")
+    stdscr.refresh()
+
 
 def main(stdscr):
 
-    stdscr.clear()
 
     board = models.board.Board(10,10,15)
+    cursor = models.cursor.Cursor(9,9)
+    draw(stdscr,board,cursor)
 
-    for y,r in enumerate(board.board):
-        for x,tile in enumerate(r):
-            stdscr.addstr(y*2,x*2, str(tile))
-
+    while(True):
+        c = stdscr.getch()
+        if c == curses.KEY_DOWN:
+            cursor.move_down()
+        else:
+            break
+        draw(stdscr,board,cursor)
 
     board.reveal()
-    stdscr.getkey()
-    
-    for y,r in enumerate(board.board):
-        for x,tile in enumerate(r):
-            stdscr.addstr(y*2,x*2, str(tile))
-
-    stdscr.refresh()
+    draw(stdscr,board,cursor)
     stdscr.getkey()
 
 
