@@ -15,6 +15,7 @@ def index_to_coord(pos, num_rows, num_columns):
 
 
 def get_adjactent(r,c, num_rows, num_columns):
+    """Get (<=)8 coordinates around one coordinate. Won't return out of bounds coords""" 
     return [(adj_row, adj_col)
             for adj_row in [r+x for x in range(-1,2) if r+x >= 0 and r+x < num_rows]
             for adj_col in [c+x for x in range(-1,2) if c+x >= 0 and c+x < num_columns]
@@ -26,15 +27,27 @@ class Tile:
         self.bomb = False
         self.score = 0
         self.hidden = True
+        self.marked = False
 
     def __str__(self):
-        if self.hidden:
+        if self.marked:
+            return "X"
+        elif self.hidden:
             return "-"
         elif self.bomb:
             return "B"
         else:
             return str(self.score)
-    
+
+    def reveal(self):
+        self.hidden = False
+
+    def is_bomb(self):
+        return self.bomb
+
+    def toggle_mark(self):
+        self.marked = not self.marked 
+
 
 def make_board(rows,columns,bombs):
     board = [[Tile() for _ in range(columns)] for _ in range(rows)]
@@ -49,14 +62,16 @@ def make_board(rows,columns,bombs):
 class Board:
 
     def __init__(self, rows=20, columns=20, bombs=4):
-        self.rows = rows
-        self.columns = columns
-        self.bombs = bombs
-
         if bombs > rows*columns-1:
             raise BoardError("Too Many Bombs")
 
+        self.rows = rows
+        self.columns = columns
+        self.bombs = bombs
         self.board = make_board(rows,columns,bombs)
+
+        self.hidden_tiles = rows*columns - bombs
+
 
     def __str__(self):
         out = ""
@@ -66,7 +81,28 @@ class Board:
             out+="\n"
         return out
 
-    def reveal(self):
+    def reveal_all(self):
         for row in self.board:
             for tile in row:
-                tile.hidden = False
+                tile.reveal()
+
+    def at(self, index):
+        row, column = index 
+        return self.board[row][column]
+
+    def reveal_tile(self, row, column):
+        tile = self.board[row][column]
+        if not tile.hidden:
+            return 
+        tile.reveal()
+        if not tile.is_bomb():
+            self.hidden_tiles-=1
+    
+
+
+    def toggle_tile_mark(self, row, column):
+        self.board[row][column].toggle_mark()
+
+
+
+

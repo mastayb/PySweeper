@@ -12,33 +12,89 @@ import curses
 
 def draw(stdscr, board, cursor):
     stdscr.clear()
+    curses.curs_set(0)
+
+    c_y,c_x =   cursor.get_pos() 
 
     for y,r in enumerate(board.board):
         for x,tile in enumerate(r):
-            stdscr.addstr(y*2,1+x*2, str(tile))
-    y,x = cursor.get_pos()
-    stdscr.addstr(y*2, x*2, "<")
-    stdscr.addstr(y*2, x*2+2, ">")
+            if (x,y) == (c_x,c_y):
+                stdscr.addstr(y*2,1+x*2, str(tile), curses.A_STANDOUT)
+            else:
+                stdscr.addstr(y*2,1+x*2, str(tile))
+    
     stdscr.refresh()
 
 
-def main(stdscr):
+def notification(stdscr, text="", height = 11, width = 20, begin_yx = None):
+    
+    if not begin_yx:
+        max_y, max_x = stdscr.getmaxyx()
+        begin_y = max_y/2-height/2
+        begin_x = max_x/2-width/2
+    else:
+        begin_y, begin_x = begin_yx
 
+    window = stdscr.derwin(height, width, begin_y, begin_x)
+    window.clear()
+    window.addstr(height/2, width/2-len(text)/2, str(text))
+
+    window.border()
+    window.refresh()
+
+    
+
+
+
+
+def main(stdscr):
+    rows = 10
+    cols = 10
 
     board = models.board.Board(10,10,15)
     cursor = models.cursor.Cursor(9,9)
     draw(stdscr,board,cursor)
 
+
+    game_won = False
+
     while(True):
         c = stdscr.getch()
         if c == curses.KEY_DOWN:
             cursor.move_down()
-        else:
+        elif c == curses.KEY_UP:
+            cursor.move_up()
+        elif c == curses.KEY_RIGHT:
+            cursor.move_right()
+        elif c == curses.KEY_LEFT:
+            cursor.move_left()
+        elif c == ord('q'):
             break
+        elif c == ord(' '):
+            c_y,c_x = cursor.get_pos() 
+            board.reveal_tile(c_y, c_x)
+            if board.at((c_y,c_x)).is_bomb():
+                board.reveal_all()
+                break
+            if not board.hidden_tiles:
+                game_won = True
+                break
+
+        elif c == ord('x'):
+            c_y,c_x =   cursor.get_pos() 
+            board.toggle_tile_mark(c_y, c_x)
+        else:
+            continue
+            
         draw(stdscr,board,cursor)
 
-    board.reveal()
     draw(stdscr,board,cursor)
+    stdscr.getkey()
+
+    if game_won:
+        notification(stdscr, "YOU WON")
+    else:
+        notification(stdscr, "YOU LOST")
     stdscr.getkey()
 
 
