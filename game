@@ -30,29 +30,51 @@ def notification(stdscr, text="", height = 11, width = 20, begin_yx = None):
     
     if not begin_yx:
         max_y, max_x = stdscr.getmaxyx()
-        begin_y = max_y/2-height/2
-        begin_x = max_x/2-width/2
+        begin_y = max_y//2-height//2
+        begin_x = max_x//2-width//2
     else:
         begin_y, begin_x = begin_yx
 
     window = stdscr.derwin(height, width, begin_y, begin_x)
     window.clear()
-    window.addstr(height/2, width/2-len(text)/2, str(text))
+    window.addstr(height//2, width//2-len(text)//2, str(text))
 
     window.border()
     window.refresh()
 
-    
 
 
 
+def get_integer_input(min_limit, max_limit, input_name):
+    while True:
+        try:
+            value  = int(input("Please enter " + input_name + ": "))
 
-def main(stdscr):
-    rows = 10
-    cols = 10
+            if value < min_limit or value > max_limit:
+                raise ValueError
 
-    board = models.board.Board(10,10,15)
-    cursor = models.cursor.Cursor(9,9)
+            break
+
+        except ValueError:
+            print("Not a valid " + input_name)
+    return value
+
+
+
+def get_game_params(max_w, max_h):
+    width = get_integer_input(1, max_w, "game width")
+    height = get_integer_input(1, max_h, "game height")
+    mines = get_integer_input(1, width*height-1, "number of mines")
+    return width,height,mines
+
+        
+
+
+def main(stdscr, game_pararms):
+    stdscr.clear()
+
+    board = models.board.Board(width,height,mines)
+    cursor = models.cursor.Cursor(width-1,height-1)
     draw(stdscr,board,cursor)
 
 
@@ -99,6 +121,8 @@ def main(stdscr):
 
 
 if __name__ == "__main__":
-    curses.wrapper(main)
+    max_x,max_y = 50,50
+    width, height, mines = get_game_params(max_x, max_y)
+    curses.wrapper(lambda stdscr: main(stdscr,(width, height, mines)))
 
 
